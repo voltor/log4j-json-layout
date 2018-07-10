@@ -191,6 +191,46 @@ public class JsonLayoutTest {
     }
 
     @Test
+    public void testRenameFieldLabel() throws Exception {
+        consoleLayout.setRenamedFieldLabels("level:test_level,tags:test_tags");
+        consoleLayout.setTags("json");
+        consoleLayout.activateOptions();
+
+        logger.info("Hello World");
+
+        with(consoleWriter.toString())
+                .assertThat("$.level", equalTo(null))
+                .assertThat("$.test_level", equalTo("INFO"))
+                .assertThat("$.test", equalTo(null))
+                .assertThat("$.test_tags", hasItems("json"));
+    }
+
+    @Test
+    public void testRenameExceptionFieldLabel() throws Exception {
+        consoleLayout.setRenamedExceptionFieldLabels("message:test_message");
+        consoleLayout.activateOptions();
+
+        logger.info("Hello World", new RuntimeException("Test"));
+
+        with(consoleWriter.toString())
+                .assertThat("$.exception.message", equalTo(null))
+                .assertThat("$.exception.test_message", equalTo("Test"));
+    }
+
+    @Test
+    public void testRenameLocationFieldLabel() throws Exception {
+        consoleLayout.setRenamedLocationFieldLabels("method:test_method");
+        consoleLayout.setIncludedFields("location");
+        consoleLayout.activateOptions();
+
+        logger.info("Hello World", new RuntimeException("Test"));
+
+        with(consoleWriter.toString())
+                .assertThat("$.location.method", equalTo(null))
+                .assertThat("$.location.test_method", equalTo("testRenameLocationFieldLabel"));
+    }
+
+    @Test
     public void testSourcePath() throws Exception {
         logger.info("Hello World!");
         with(consoleWriter.toString()).assertThat("$.path", nullValue());

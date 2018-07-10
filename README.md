@@ -120,6 +120,46 @@ The message will look like the following one:
         "thread": "main",
         "@version": "1"
     }
+    
+#### Renaming fields, exceptionFields, locationFields
+
+Existing field that needs to be renamed can be specified in the with `renamedFieldLabels`, `renamedExceptionFieldLabels` or `renamedLocationFieldLabels` configuration properties of the layout:
+    
+    log4j.rootLogger = INFO, stdout
+
+    log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+    log4j.appender.stdout.layout=org.jetbrains.appenders.JsonLayout
+    log4j.appender.stdout.renamedFieldLabels=level:gns-level,@version:@gns-version
+    log4j.appender.stdout.renamedExceptionFieldLabels=class:gns-level,@version:@gns-class
+    log4j.appender.stdout.renamedLocationFieldLabels=file:gns-file
+        
+The message will look like the following one:
+
+    {
+        "exception": {
+            "message": "Test Exception",
+            "gns-class": "java.lang.RuntimeException",
+            "stacktrace": "java.lang.RuntimeException: Test Exception\n\tat com.github.szhem.logstash.log4j.LogStashJsonLayoutTest.testSourcePath(LogStashJsonLayoutTest.java:193)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.lang.reflect.Method.invoke(Method.java:601)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:47)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:44)\n\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)\n\tat org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)\n\tat org.junit.rules.TestWatcher$1.evaluate(TestWatcher.java:55)\n\tat org.junit.rules.RunRules.evaluate(RunRules.java:20)\n\tat org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:271)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:70)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:50)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:238)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:63)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:236)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:53)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:309)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:160)\n\tat com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:76)\n\tat com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:195)\n\tat com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:63)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.lang.reflect.Method.invoke(Method.java:601)\n\tat com.intellij.rt.execution.application.AppMain.main(AppMain.java:120)"
+        },
+        "location": {
+            "class": "com.github.szhem.logstash.log4j.LogStashJsonLayoutTest",
+            "gns-file": "LogStashJsonLayoutTest.java",
+            "method": "testSourcePath",
+            "line": "195"
+        },
+        "gns-level": "ERROR",
+        "logger": "root",
+        "message": "Hello World!",
+        "mdc": {
+            "mdc_key_2": "mdc_val_2",
+            "mdc_key_1": "mdc_val_1"
+        },
+        "ndc": "ndc_1 ndc_2 ndc_3",
+        "host": "vm",
+        "@timestamp": "2013-11-17T10:21:41.863Z",
+        "thread": "main",
+        "@gns-version": "1"
+    }
 
 #### Logging source path
 
