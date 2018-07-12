@@ -110,18 +110,16 @@ public class JsonLayoutTest {
 
     @Test
     public void testIncludeFields() throws Exception {
-        consoleLayout.setRenamedFieldLabels("location:renamed_location");
-        consoleLayout.setRenamedLocationFieldLabels("file:renamed_file");
+        consoleLayout.setIncludedFields("location");
         consoleLayout.activateOptions();
 
         logger.info("Hello World");
 
         with(consoleWriter.toString())
-            .assertThat("$.location", nullValue())
-            .assertThat("$.renamed_location.class", equalTo(getClass().getName()))
-            .assertThat("$.renamed_location.renamed_file", equalTo(getClass().getSimpleName() + ".java"))
-            .assertThat("$.renamed_location.method", equalTo(testName.getMethodName()))
-            .assertThat("$.renamed_location.line", notNullValue());
+            .assertThat("$.location.class", equalTo(getClass().getName()))
+            .assertThat("$.location.file", equalTo(getClass().getSimpleName() + ".java"))
+            .assertThat("$.location.method", equalTo(testName.getMethodName()))
+            .assertThat("$.location.line", notNullValue());
     }
 
     @Test
@@ -140,9 +138,7 @@ public class JsonLayoutTest {
 
     @Test
     public void testExcludeFields() throws Exception {
-        consoleLayout.setRenamedExceptionFieldLabels("exception:renamed_exception");
-        consoleLayout.setRenamedFieldLabels("ndc:renamed_ndc");
-        consoleLayout.setExcludedFields("ndc,mdc,renamed_exception");
+        consoleLayout.setExcludedFields("ndc,mdc,exception");
         consoleLayout.activateOptions();
 
         NDC.push("ndc_1");
@@ -159,13 +155,11 @@ public class JsonLayoutTest {
 
         with(consoleWriter.toString())
             .assertThat("$.exception", nullValue())
-            .assertThat("$.renamed_exception", nullValue())
             .assertThat("$.level", equalTo("ERROR"))
             .assertThat("$.logger", equalTo(logger.getName()))
             .assertThat("$.mdc", nullValue())
             .assertThat("$.message", equalTo("Hello World"))
             .assertThat("$.ndc", nullValue())
-            .assertThat("$.renamed_ndc", nullValue())
             .assertThat("$.path", nullValue())
             .assertThat("$.host", equalTo(InetAddress.getLocalHost().getHostName()))
             .assertThat("$.tags", nullValue())
@@ -213,7 +207,7 @@ public class JsonLayoutTest {
 
     @Test
     public void testRenameExceptionFieldLabel() throws Exception {
-        consoleLayout.setRenamedExceptionFieldLabels("message:renamed_message");
+        consoleLayout.setRenamedFieldLabels("exception.message:renamed_message");
         consoleLayout.activateOptions();
 
         logger.info("Hello World", new RuntimeException("Test"));
@@ -225,7 +219,7 @@ public class JsonLayoutTest {
 
     @Test
     public void testRenameLocationFieldLabel() throws Exception {
-        consoleLayout.setRenamedLocationFieldLabels("method:renamed_method");
+        consoleLayout.setRenamedFieldLabels("location.method:renamed_method");
         consoleLayout.setIncludedFields("location");
         consoleLayout.activateOptions();
 
