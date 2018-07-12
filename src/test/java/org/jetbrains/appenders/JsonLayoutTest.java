@@ -110,16 +110,18 @@ public class JsonLayoutTest {
 
     @Test
     public void testIncludeFields() throws Exception {
+        consoleLayout.setRenamedFieldLabels("file:renamed_file,location:renamed_location,location.file:renamed_file");
         consoleLayout.setIncludedFields("location");
         consoleLayout.activateOptions();
 
         logger.info("Hello World");
 
         with(consoleWriter.toString())
-            .assertThat("$.location.class", equalTo(getClass().getName()))
-            .assertThat("$.location.file", equalTo(getClass().getSimpleName() + ".java"))
-            .assertThat("$.location.method", equalTo(testName.getMethodName()))
-            .assertThat("$.location.line", notNullValue());
+            .assertThat("$.location", nullValue())
+            .assertThat("$.renamed_location.class", equalTo(getClass().getName()))
+            .assertThat("$.renamed_location.renamed_file", equalTo(getClass().getSimpleName() + ".java"))
+            .assertThat("$.renamed_location.method", equalTo(testName.getMethodName()))
+            .assertThat("$.renamed_location.line", notNullValue());
     }
 
     @Test
@@ -138,6 +140,7 @@ public class JsonLayoutTest {
 
     @Test
     public void testExcludeFields() throws Exception {
+        consoleLayout.setRenamedFieldLabels("ndc:renamed_ndc");
         consoleLayout.setExcludedFields("ndc,mdc,exception");
         consoleLayout.activateOptions();
 
@@ -160,6 +163,7 @@ public class JsonLayoutTest {
             .assertThat("$.mdc", nullValue())
             .assertThat("$.message", equalTo("Hello World"))
             .assertThat("$.ndc", nullValue())
+            .assertThat("$.renamed_ndc", nullValue())
             .assertThat("$.path", nullValue())
             .assertThat("$.host", equalTo(InetAddress.getLocalHost().getHostName()))
             .assertThat("$.tags", nullValue())
