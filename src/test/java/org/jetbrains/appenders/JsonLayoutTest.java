@@ -110,16 +110,18 @@ public class JsonLayoutTest {
 
     @Test
     public void testIncludeFields() throws Exception {
+        consoleLayout.setRenamedFieldLabels("file:renamed_file,location:renamed_location,location.file:renamed_file");
         consoleLayout.setIncludedFields("location");
         consoleLayout.activateOptions();
 
         logger.info("Hello World");
 
         with(consoleWriter.toString())
-            .assertThat("$.location.class", equalTo(getClass().getName()))
-            .assertThat("$.location.file", equalTo(getClass().getSimpleName() + ".java"))
-            .assertThat("$.location.method", equalTo(testName.getMethodName()))
-            .assertThat("$.location.line", notNullValue());
+            .assertThat("$.location", nullValue())
+            .assertThat("$.renamed_location.class", equalTo(getClass().getName()))
+            .assertThat("$.renamed_location.renamed_file", equalTo(getClass().getSimpleName() + ".java"))
+            .assertThat("$.renamed_location.method", equalTo(testName.getMethodName()))
+            .assertThat("$.renamed_location.line", notNullValue());
     }
 
     @Test
@@ -138,6 +140,7 @@ public class JsonLayoutTest {
 
     @Test
     public void testExcludeFields() throws Exception {
+        consoleLayout.setRenamedFieldLabels("ndc:renamed_ndc");
         consoleLayout.setExcludedFields("ndc,mdc,exception");
         consoleLayout.activateOptions();
 
@@ -160,6 +163,7 @@ public class JsonLayoutTest {
             .assertThat("$.mdc", nullValue())
             .assertThat("$.message", equalTo("Hello World"))
             .assertThat("$.ndc", nullValue())
+            .assertThat("$.renamed_ndc", nullValue())
             .assertThat("$.path", nullValue())
             .assertThat("$.host", equalTo(InetAddress.getLocalHost().getHostName()))
             .assertThat("$.tags", nullValue())
@@ -188,6 +192,46 @@ public class JsonLayoutTest {
         with(consoleWriter.toString())
             .assertThat("$.type", equalTo("log4j"))
             .assertThat("$.shipper", equalTo("logstash"));
+    }
+
+    @Test
+    public void testRenameFieldLabel() throws Exception {
+        consoleLayout.setRenamedFieldLabels("level:renamed_level,tags:renamed_tags");
+        consoleLayout.setTags("json");
+        consoleLayout.activateOptions();
+
+        logger.info("Hello World");
+
+        with(consoleWriter.toString())
+                .assertThat("$.level", nullValue())
+                .assertThat("$.renamed_level", equalTo("INFO"))
+                .assertThat("$.tags", nullValue())
+                .assertThat("$.renamed_tags", hasItems("json"));
+    }
+
+    @Test
+    public void testRenameExceptionFieldLabel() throws Exception {
+        consoleLayout.setRenamedFieldLabels("exception.message:renamed_message");
+        consoleLayout.activateOptions();
+
+        logger.info("Hello World", new RuntimeException("Test"));
+
+        with(consoleWriter.toString())
+                .assertThat("$.exception.message", nullValue())
+                .assertThat("$.exception.renamed_message", equalTo("Test"));
+    }
+
+    @Test
+    public void testRenameLocationFieldLabel() throws Exception {
+        consoleLayout.setRenamedFieldLabels("location.method:renamed_method");
+        consoleLayout.setIncludedFields("location");
+        consoleLayout.activateOptions();
+
+        logger.info("Hello World", new RuntimeException("Test"));
+
+        with(consoleWriter.toString())
+                .assertThat("$.location.method", nullValue())
+                .assertThat("$.location.renamed_method", equalTo("testRenameLocationFieldLabel"));
     }
 
     @Test

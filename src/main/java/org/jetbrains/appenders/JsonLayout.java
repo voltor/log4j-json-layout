@@ -29,15 +29,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class JsonLayout extends Layout {
@@ -47,6 +39,50 @@ public class JsonLayout extends Layout {
 
     private static final char[] HEX_CHARS =
         {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+    private Map<String, String> fieldLabels = new HashMap<String, String>();
+
+    private void setDefaultFieldLabels() {
+        fieldLabels.put("location.class", "class");
+        fieldLabels.put("location.file", "file");
+        fieldLabels.put("location.file", "file");
+        fieldLabels.put("location.line", "line");
+        fieldLabels.put("location.method", "method");
+
+        fieldLabels.put("exception.class", "class");
+        fieldLabels.put("exception.message", "message");
+        fieldLabels.put("exception.stacktrace", "stacktrace");
+
+        fieldLabels.put("exception", "exception");
+        fieldLabels.put("level", "level");
+        fieldLabels.put("location", "location");
+        fieldLabels.put("logger", "logger");
+        fieldLabels.put("message", "message");
+        fieldLabels.put("mdc", "mdc");
+        fieldLabels.put("ndc", "ndc");
+        fieldLabels.put("host", "host");
+        fieldLabels.put("path", "path");
+        fieldLabels.put("tags", "tags");
+        fieldLabels.put("@timestamp", "@timestamp");
+        fieldLabels.put("thread", "thread");
+        fieldLabels.put("@version", "@version");
+    }
+
+    private void updateFieldLabel(String key, String value) {
+        fieldLabels.put(key, value);
+    }
+
+    private String getFieldLabel(String key) {
+        return fieldLabels.get(key);
+    }
+
+    private String getLocationFieldLabel(String key) {
+        return getFieldLabel("location." + key);
+    }
+
+    private String getExceptionFieldLabel(String key) {
+        return getFieldLabel("exception." + key);
+    }
 
     private enum LocationField {
         CLASS("class"),
@@ -105,15 +141,43 @@ public class JsonLayout extends Layout {
         }
     }
 
+    private class RenderedFieldLabels {
+        String locationClass = getLocationFieldLabel("class");
+        String locationFile = getLocationFieldLabel("file");
+        String locationLine = getLocationFieldLabel("line");
+        String locationMethod = getLocationFieldLabel("method");
+
+        String exceptionClass = getExceptionFieldLabel("class");
+        String exceptionMessage = getExceptionFieldLabel("message");
+        String exceptionStacktrace = getExceptionFieldLabel("stacktrace");
+
+        String exception = getFieldLabel("exception");
+        String level = getFieldLabel("level");
+        String location = getFieldLabel("location");
+        String logger = getFieldLabel("logger");
+        String message = getFieldLabel("message");
+        String mdc = getFieldLabel("mdc");
+        String ndc = getFieldLabel("ndc");
+        String host = getFieldLabel("host");
+        String path = getFieldLabel("path");
+        String tags = getFieldLabel("tags");
+        String timestamp = getFieldLabel("@timestamp");
+        String thread = getFieldLabel("thread");
+        String version = getFieldLabel("@version");
+    }
+
     private static final String VERSION = "1";
 
     private String tagsVal;
     private String fieldsVal;
     private String includedFields;
     private String excludedFields;
+    private String[] renamedFieldLabels;
 
     private final Map<String, String> fields;
     private final Set<Field> renderedFields;
+    private RenderedFieldLabels renderedFieldLabels;
+
     private final DateFormat dateFormat;
     private final Date date;
     private final StringBuilder buf;
@@ -126,6 +190,8 @@ public class JsonLayout extends Layout {
 
     public JsonLayout() {
         fields = new HashMap<String, String>();
+
+        setDefaultFieldLabels();
 
         renderedFields = EnumSet.allOf(Field.class);
         renderedFields.remove(Field.LOCATION);
@@ -157,7 +223,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            appendField(buf, Field.LEVEL.val, event.getLevel().toString());
+            appendField(buf, renderedFieldLabels.level, event.getLevel().toString());
             hasPrevField = true;
         }
 
@@ -172,7 +238,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            appendField(buf, Field.LOGGER.val, event.getLoggerName());
+            appendField(buf, renderedFieldLabels.logger, event.getLoggerName());
             hasPrevField = true;
         }
 
@@ -180,7 +246,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            appendField(buf, Field.MESSAGE.val, event.getRenderedMessage());
+            appendField(buf, renderedFieldLabels.message, event.getRenderedMessage());
             hasPrevField = true;
         }
 
@@ -197,7 +263,7 @@ public class JsonLayout extends Layout {
                 if (hasPrevField) {
                     buf.append(',');
                 }
-                appendField(buf, Field.NDC.val, event.getNDC());
+                appendField(buf, renderedFieldLabels.ndc, event.getNDC());
                 hasPrevField = true;
             }
         }
@@ -206,7 +272,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            appendField(buf, Field.HOST.val, hostName);
+            appendField(buf, renderedFieldLabels.host, hostName);
             hasPrevField = true;
         }
 
@@ -229,7 +295,7 @@ public class JsonLayout extends Layout {
                 buf.append(',');
             }
             date.setTime(event.getTimeStamp());
-            appendField(buf, Field.TIMESTAMP.val, dateFormat.format(date));
+            appendField(buf, renderedFieldLabels.timestamp, dateFormat.format(date));
             hasPrevField = true;
         }
 
@@ -237,7 +303,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            appendField(buf, Field.THREAD.val, event.getThreadName());
+            appendField(buf, renderedFieldLabels.thread, event.getThreadName());
             hasPrevField = true;
         }
 
@@ -245,7 +311,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            appendField(buf, Field.VERSION.val, VERSION);
+            appendField(buf, renderedFieldLabels.version, VERSION);
         }
 
         buf.append("}\n");
@@ -281,7 +347,7 @@ public class JsonLayout extends Layout {
             pathResolved = true;
         }
         if (path != null) {
-            appendField(buf, Field.PATH.val, path);
+            appendField(buf, renderedFieldLabels.path, path);
             return true;
         }
         return false;
@@ -338,7 +404,7 @@ public class JsonLayout extends Layout {
             return false;
         }
 
-        appendQuotedName(builder, Field.TAGS.val);
+        appendQuotedName(builder, renderedFieldLabels.tags);
         builder.append(":[");
         for (int i = 0, len = tags.length; i < len; i++) {
             appendQuotedValue(builder, tags[i]);
@@ -357,7 +423,7 @@ public class JsonLayout extends Layout {
             return false;
         }
 
-        appendQuotedName(buf, Field.MDC.val);
+        appendQuotedName(buf, renderedFieldLabels.mdc);
         buf.append(":{");
 
         for (Iterator<? extends Map.Entry<?, ?>> iter = entries.entrySet().iterator(); iter.hasNext(); ) {
@@ -380,12 +446,12 @@ public class JsonLayout extends Layout {
 
         boolean hasPrevField = false;
 
-        appendQuotedName(buf, Field.LOCATION.val);
+        appendQuotedName(buf, renderedFieldLabels.location);
         buf.append(":{");
 
         String className = locationInfo.getClassName();
         if (className != null) {
-            appendField(buf, LocationField.CLASS.val, className);
+            appendField(buf, renderedFieldLabels.locationClass, className);
             hasPrevField = true;
         }
 
@@ -394,7 +460,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            appendField(buf, LocationField.FILE.val, fileName);
+            appendField(buf, renderedFieldLabels.locationFile, fileName);
             hasPrevField = true;
         }
 
@@ -403,7 +469,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            appendField(buf, LocationField.METHOD.val, methodName);
+            appendField(buf, renderedFieldLabels.locationMethod, methodName);
             hasPrevField = true;
         }
 
@@ -412,7 +478,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            appendField(buf, LocationField.LINE.val, lineNum);
+            appendField(buf, renderedFieldLabels.locationLine, lineNum);
         }
 
         buf.append('}');
@@ -426,7 +492,7 @@ public class JsonLayout extends Layout {
             return false;
         }
 
-        appendQuotedName(buf, Field.EXCEPTION.val);
+        appendQuotedName(buf, renderedFieldLabels.exception);
         buf.append(":{");
 
         boolean hasPrevField = false;
@@ -436,7 +502,7 @@ public class JsonLayout extends Layout {
         if (throwable != null) {
             String message = throwable.getMessage();
             if (message != null) {
-                appendField(buf, ExceptionField.MESSAGE.val, message);
+                appendField(buf, renderedFieldLabels.exceptionMessage, message);
                 hasPrevField = true;
             }
 
@@ -445,7 +511,7 @@ public class JsonLayout extends Layout {
                 if (hasPrevField) {
                     buf.append(',');
                 }
-                appendField(buf, ExceptionField.CLASS.val, className);
+                appendField(buf, renderedFieldLabels.exceptionClass, className);
                 hasPrevField = true;
             }
         }
@@ -455,7 +521,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            appendQuotedName(buf, ExceptionField.STACKTRACE.val);
+            appendQuotedName(buf, renderedFieldLabels.exceptionStacktrace);
             buf.append(":\"");
             for (int i = 0, len = stackTrace.length; i < len; i++) {
                 appendValue(buf, stackTrace[i]);
@@ -489,6 +555,13 @@ public class JsonLayout extends Layout {
                 renderedFields.remove(Field.fromValue(val));
             }
         }
+
+        if(renamedFieldLabels != null) {
+            for(String fieldLabel : renamedFieldLabels) {
+                String[] field = PAIR_SEP_PATTERN.split(fieldLabel);
+                updateFieldLabel(field[0], field[1]);
+            }
+        }
         if (tagsVal != null) {
             tags = SEP_PATTERN.split(tagsVal);
         }
@@ -508,6 +581,7 @@ public class JsonLayout extends Layout {
             }
         }
         ignoresThrowable = !renderedFields.contains(Field.EXCEPTION);
+        renderedFieldLabels = new RenderedFieldLabels();
     }
 
     @Override
@@ -597,5 +671,9 @@ public class JsonLayout extends Layout {
 
     public void setHostName(String hostName) {
         this.hostName = hostName;
+    }
+
+    public void setRenamedFieldLabels(String renamedFieldLabels) {
+        this.renamedFieldLabels = SEP_PATTERN.split(renamedFieldLabels);
     }
 }

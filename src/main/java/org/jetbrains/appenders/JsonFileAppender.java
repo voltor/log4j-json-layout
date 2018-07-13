@@ -7,7 +7,9 @@ package org.jetbrains.appenders;
  */
 public class JsonFileAppender extends NextRollingFileAppender {
   {
-    setLayout(new JsonLayout());
+    JsonLayout layout = new JsonLayout();
+    layout.activateOptions();
+    setLayout(layout);
     setMaximumFileSize(10 * 1024 * 1024);
     setFileExtension(".json");
     setMaxBackupIndex(10);
