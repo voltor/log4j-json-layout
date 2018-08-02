@@ -131,7 +131,7 @@ Existing field that needs to be renamed can be specified in the `renamedFieldLab
 
     log4j.appender.stdout=org.apache.log4j.ConsoleAppender
     log4j.appender.stdout.layout=org.jetbrains.appenders.JsonLayout
-    log4j.appender.stdout.renamedFieldLabels=level:renamed-level,exception.class:renames_class,location.file:renamed_file
+    log4j.appender.stdout.layout.renamedFieldLabels=level:renamed-level,exception.class:renames_class,location.file:renamed_file
     log4j.appender.stdout.layout.includedFields=location
 
         
