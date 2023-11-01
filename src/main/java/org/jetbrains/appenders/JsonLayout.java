@@ -17,6 +17,7 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.Category;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Layout;
+import org.apache.log4j.MDC;
 import org.apache.log4j.helpers.LogLog;
 import org.apache.log4j.spi.AppenderAttachable;
 import org.apache.log4j.spi.LocationInfo;
@@ -262,7 +263,7 @@ public class JsonLayout extends Layout {
             if (hasPrevField) {
                 buf.append(',');
             }
-            date.setTime(event.getTimeStamp());
+            date.setTime( event.timeStamp );
             appendField(buf, renderedFieldLabels.timestamp.renderedLabel, dateFormat.format(date));
             hasPrevField = true;
         }
@@ -307,7 +308,7 @@ public class JsonLayout extends Layout {
     private boolean appendSourcePath(StringBuilder buf, LoggingEvent event) {
         if (!pathResolved) {
             @SuppressWarnings("unchecked")
-            Appender appender = findLayoutAppender(event.getLogger());
+            Appender appender = findLayoutAppender( Category.getInstance( event.getLoggerName() ) );
             if (appender instanceof FileAppender) {
                 FileAppender fileAppender = (FileAppender) appender;
                 path = getAppenderPath(fileAppender);
@@ -386,7 +387,7 @@ public class JsonLayout extends Layout {
     }
 
     private boolean appendMDC(StringBuilder buf, LoggingEvent event) {
-        Map<?, ?> entries = event.getProperties();
+        Map<?, ?> entries = getProperties( event );
         if (entries.isEmpty()) {
             return false;
         }
@@ -405,6 +406,25 @@ public class JsonLayout extends Layout {
 
         return true;
     }
+    
+	public Map getProperties(LoggingEvent event) {
+
+		Hashtable mdcCopy = null;
+		// the clone call is required for asynchronous logging.
+		// See also bug #5932.
+		Hashtable t = (Hashtable) MDC.getContext();
+		if (t != null) {
+			mdcCopy = (Hashtable) t.clone();
+		}
+
+		Map properties;
+		if (mdcCopy == null) {
+			properties = new HashMap();
+		} else {
+			properties = mdcCopy;
+		}
+		return Collections.unmodifiableMap(properties);
+	}
 
     private boolean appendLocation(StringBuilder buf, LoggingEvent event) {
         LocationInfo locationInfo = event.getLocationInformation();
