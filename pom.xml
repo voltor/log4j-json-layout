@@ -21,7 +21,7 @@
 
     <groupId>org.jetbrains.appenders</groupId>
     <artifactId>log4j-1.2.17-json-layout</artifactId>
-    <version>1.0.0-1.2.12-vk</version>
+    <version>1.2.12-vk</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -100,9 +100,6 @@
     </dependencies>
 
     <build>
-        <finalName>
-            ${project.artifactId}
-        </finalName>
         <resources>
             <resource>
                 <directory>.</directory>
