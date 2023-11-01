@@ -101,7 +101,7 @@
 
     <build>
         <finalName>
-            ${project.artifactId}-${buildNumber}
+            ${project.artifactId}
         </finalName>
         <resources>
             <resource>
@@ -118,8 +118,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.3</version>
                 <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
+                    <source>1.6</source>
+                    <target>1.6</target>
                 </configuration>
             </plugin>
             <plugin>
